@@ -1,0 +1,39 @@
+{
+	"name": "TaskManager",
+	"version": "0.1a",
+	"author": [
+		"[https://wikimedi.ca/wiki/Utilisateur:Antoine_Mercier-Linteau Antoine Mercier-Linteau]",
+		"[https://www.mediawiki.org/wiki/User:Yaron_Koren Yaron Koren]",
+		"[https://thenounproject.com/niceandserious/ Nice and Serious]"
+	],
+	"url": "https://wikimedi.ca",
+	"descriptionmsg": "taskManager-extension-description",
+	"license-name": "GPL-2.0-or-later",
+	"type": "specialpage",
+	"requires": {
+		"MediaWiki": ">= 1.31.0",
+		"extensions": { "Flow": "*", "Echo": "*" }
+	},
+	"AutoloadClasses": {
+		"MediaWiki\\Extension\\TaskManager\\TaskManager": "TaskManager.class.php",
+		"MediaWiki\\Extension\\TaskManager\\SpecialMyTasks": "includes/specials/SpecialChangeProfessionnalInformation.php",
+		"MediaWiki\\Extension\\TaskManager\\AssigneeAddedPresentationModel": "includes/presentationModels/AssigneeAddedPresentationModel.php",
+		"DTPageStructure": "vendor/DataTransfer/DT_PageStructure.php",
+		"DTPageComponent": "vendor/DataTransfer/DT_PageComponent.php"
+	},
+	"Hooks": {
+		"PersonalUrls": "MediaWiki\\Extension\\TaskManager\\TaskManager::onPersonalUrls",
+		"ArticleFromTitle": "MediaWiki\\Extension\\TaskManager\\TaskManager::onArticleFromTitle",
+		"PageContentSave": "MediaWiki\\Extension\\TaskManager\\TaskManager::onPageContentSave",
+		"BeforeCreateEchoEvent": "MediaWiki\\Extension\\TaskManager\\TaskManager::onBeforeCreateEchoEvent"
+	},
+	"SpecialPages": {
+		"MyTasks" : "MediaWiki\\Extension\\TaskManager\\SpecialMyTasks"
+	},
+	"MessagesDirs": {
+		"WikimedicaAccount": [
+			"i18n"
+		]
+	},
+	"manifest_version": 2
+}
