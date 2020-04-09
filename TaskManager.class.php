@@ -20,6 +20,9 @@ class TaskManager
     /** @staticvar boolean if this hook was ran. */
     private static $_ran = false;
     
+    /**
+     * Triggers an event when a task page is modified.
+     * */
     public static function onPageContentSave( \WikiPage &$wikiPage, &$user, &$content, &$summary, $isMinor, $isWatch, $section, &$flags, &$status )
     {
         if(self::$_ran) { return; } // Can only be called once.
@@ -89,6 +92,11 @@ class TaskManager
         ]);
     }
 
+    /**
+     * Extracts the task template from a page.
+     * @param \DTPageStructure $page the page to extract the template from.
+     * @return array the template [parameter => value]
+     * */
     private static function _getTaskTemplate($page)
     {
         if(get_class($page) !== 'DTPageStructure') { return $page; }
@@ -106,6 +114,12 @@ class TaskManager
         return [];
     }
     
+    /**
+     * Extracts the parameters that have been modified between two templates.
+     * @param array $t1
+     * ­@param array $t2
+     * @return array [parameter => new_value]
+     * */
     private static function _diff($t1, $t2)
     {
         if(!$t1) { return $t2; } // $t2 contains all new parameters.
@@ -132,23 +146,26 @@ class TaskManager
      */
     public static function onBeforeCreateEchoEvent( &$echoNotifications, &$echoNotificationCategories, &$echoNotificationIcons )
     {
-        $echoNotificationCategories['task-manager-assignee-added'] = [
+        // Not needed for now, the system category is fine (forces web notifications on).
+        /*$echoNotificationCategories['task-manager-assignee-added'] = [
             'tooltip' => 'echo-pref-tooltip-task-manager-assignee-added',
-            'priority' => 2 // High priority.
-        ];
+            'priority' => 2, // High priority.
+            'no-dismiss' => ['web']
+        ];*/
         
         // Enable email alerts by default.
-        global $wgDefaultUserOptions;
+        /*global $wgDefaultUserOptions;
         $wgDefaultUserOptions["echo-subscriptions-email-task-manager-assignee-added"] = true;
+        $wgDefaultUserOptions["echo-subscriptions-web-task-manager-assignee-added"] = true; */
         
-        global $wgNotifyTypeAvailabilityByCategory; // Allow users to disable notifications.
+        global $wgNotifyTypeAvailabilityByCategory; // Allow users to control notifications.
         $wgNotifyTypeAvailabilityByCategory['task-manager-assignee-added'] = ['web' => true, 'email' => true];
         
         global $wgEchoUseJobQueue;
         $wgEchoUseJobQueue = !(defined('ENVIRONMENT') && ENVIRONMENT == 'development'); // Use the job queue if not in a development environment.
         
         $echoNotifications['task-manager-assignee-added'] = [
-            'category' => 'task-manager-assignee-added',
+            'category' => 'system',//'task-manager-assignee-added',
             'section' => 'alert',
             'group' => 'interactive',
             'presentation-model' => \MediaWiki\Extension\TaskManager\AssigneeAddedPresentationModel::class,

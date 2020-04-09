@@ -68,6 +68,14 @@ class AssigneeAddedPresentationModel extends \EchoEventPresentationModel
     
     /**
      * @inheritdoc
+     */
+    public function getHeaderMessage()
+    {
+        return new \Message($this->getHeaderMessageKey(), [$this->event->getTitle()->getFullText()]);
+    }
+    
+    /**
+     * @inheritdoc
      * */
     public function getIconType() { return 'list'; }
     
@@ -93,11 +101,6 @@ class AssigneeAddedPresentationModel extends \EchoEventPresentationModel
                 'url' => $user->getUserPage()->getFullURL(),
                 'label' => $user->getName(),
                 'icon' => 'userAvatar'
-            ],
-            [   // Secondary Link to the task.
-                'url' => $this->event->getTitle()->getFullURL(),
-                'label' => $this->event->getTitle()->getFullText(),
-                'icon' => 'add'
             ]
         ];
     }

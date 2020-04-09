@@ -1,5 +1,5 @@
 {
 	"echo-category-title-task-manager-assignee-added": "Assignation d'une tâche",
-	"notification-header-task-manager-assignee-added": "Une tâche vous a été assignée",
+	"notification-header-task-manager-assignee-added": "La tâche $1 vous a été assignée",
 	"echo-pref-tooltip-task-manager-assignee-added": "Vous alerte si une tâche vous a été assignée"
 }
