@@ -49,10 +49,6 @@ class AssigneeAddedPresentationModel extends \EchoEventPresentationModel
             return true; // The page did not change, the notification can proceed.
         }
         
-        // Don't bother checking it the page has changed if jobs are run synchronously.
-        global $wgEchoUseJobQueue;
-        if(!$wgEchoUseJobQueue) { return true; }
-        
         /* Check if the user is still part of the assignees ...
          * sort of, to make this less complicated, it just checks if the user name is mentionned in the whole page...
          */
@@ -62,6 +58,13 @@ class AssigneeAddedPresentationModel extends \EchoEventPresentationModel
         {
             return false; // The user name was not found in the page ... it must have been unassigned.
         }
+        
+        
+        // Add the just assigned task ( and its talk page) to the assignee's watchlist.
+        $watchlist = \MediaWiki\MediaWikiServices::getInstance()->getWatchedItemStore();
+        $watchlist->addWatch($this->getUser(), $title);
+        // Normally talk pages are defined.
+        if($talk = $title->getTalkPageIfDefined()) { $watchlist->addWatch($this->getUser(), $talk); }
         
         return true; // Let the event through.
     }

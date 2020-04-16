@@ -11,6 +11,7 @@
 namespace MediaWiki\Extension\TaskManager;
 
 use DTPageStructure;
+use Flow;
 
 /**
  * TaskManager extension class.
@@ -70,14 +71,6 @@ class TaskManager
         
         if(!$users) { return; } // If no valid users were found.
         
-        // Add the just assigned task ( and its talk page) to the assignee's watchlist.
-        $watchlist = \MediaWiki\MediaWikiServices::getInstance()->getWatchedItemStore();
-        foreach($users as $u)
-        { 
-            $watchlist->addWatch($u, $title);
-            if($talk = $title->getTalkPageIfDefined()) { $watchlist->addWatch($u, $talk); }
-        }
-        
         // Create the event.
         \EchoEvent::create([
             'type' => 'task-manager-assignee-added',
@@ -91,7 +84,7 @@ class TaskManager
             'agent' => $user
         ]);
     }
-
+    
     /**
      * Extracts the task template from a page.
      * @param \DTPageStructure $page the page to extract the template from.
@@ -242,7 +235,7 @@ class TaskManager
 	    $subject = $board; // Redirect to the board.
 	    
 	    // Check if the subject is a task.
-	    foreach((Article::newFromTitle($subject->getOtherPage(), $context))->getCategories() as $category)
+	    foreach((\Article::newFromTitle($subject->getOtherPage(), $context))->getCategories() as $category)
 	    {
 	        if($category->getDBKey() == 'Tâches')
 	        {
@@ -264,6 +257,7 @@ class TaskManager
 	            default:
 	        }
 	    }
+	    
 	    if(isset($queryValues['topic_showPostId'])) { $query['topic_showPostId'] = $queryValues['topic_showPostId']; }
 	    if(isset($queryValues['fromnotif'])) { $query['fromnotif'] = $queryValues['fromnotif']; }
 	    if(isset($queryValues['markasread'])) { $query['markasread'] = $queryValues['markasread']; }
