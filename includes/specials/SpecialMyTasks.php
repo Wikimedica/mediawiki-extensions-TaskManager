@@ -58,6 +58,6 @@ class SpecialMyTasks extends \SpecialPage
 	        return;
 	    }
 	    
-	    $this->getOutput()->addWikiTextAsInterface("{{Toutes_les_tâches_d\'un utilisateur|utilisateur=$user}}");
+	    $this->getOutput()->addWikiTextAsInterface("{{Toutes_les_tâches_d'un utilisateur|utilisateur=$user}}");
 	}
 }

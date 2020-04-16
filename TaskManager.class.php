@@ -140,16 +140,16 @@ class TaskManager
     public static function onBeforeCreateEchoEvent( &$echoNotifications, &$echoNotificationCategories, &$echoNotificationIcons )
     {
         // Not needed for now, the system category is fine (forces web notifications on).
-        /*$echoNotificationCategories['task-manager-assignee-added'] = [
+        $echoNotificationCategories['task-manager-assignee-added'] = [
             'tooltip' => 'echo-pref-tooltip-task-manager-assignee-added',
             'priority' => 2, // High priority.
             'no-dismiss' => ['web']
-        ];*/
+        ];
         
         // Enable email alerts by default.
-        /*global $wgDefaultUserOptions;
+        global $wgDefaultUserOptions;
         $wgDefaultUserOptions["echo-subscriptions-email-task-manager-assignee-added"] = true;
-        $wgDefaultUserOptions["echo-subscriptions-web-task-manager-assignee-added"] = true; */
+        $wgDefaultUserOptions["echo-subscriptions-web-task-manager-assignee-added"] = true;
         
         global $wgNotifyTypeAvailabilityByCategory; // Allow users to control notifications.
         $wgNotifyTypeAvailabilityByCategory['task-manager-assignee-added'] = ['web' => true, 'email' => true];
@@ -158,7 +158,7 @@ class TaskManager
         $wgEchoUseJobQueue = !(defined('ENVIRONMENT') && ENVIRONMENT == 'development'); // Use the job queue if not in a development environment.
         
         $echoNotifications['task-manager-assignee-added'] = [
-            'category' => 'system',//'task-manager-assignee-added',
+            'category' => 'task-manager-assignee-added',
             'section' => 'alert',
             'group' => 'interactive',
             'presentation-model' => \MediaWiki\Extension\TaskManager\AssigneeAddedPresentationModel::class,
