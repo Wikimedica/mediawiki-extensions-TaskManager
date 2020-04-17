@@ -146,7 +146,11 @@ class TaskManager
             'no-dismiss' => ['web']
         ];
         
-        // Enable email alerts by default.
+        /* Enable email alerts by default. 
+         * Also defined in extension.json, which seems superfluous, but sometimes, this event is not called
+         * before notifications are cached in \Echo\NotifUser. Consequently \Echo\AttributeManager->getUserEnabledEvents() is 
+         * called without those user default options returns that this event is not enabled for this user.
+         * */
         global $wgDefaultUserOptions;
         $wgDefaultUserOptions["echo-subscriptions-email-task-manager-assignee-added"] = true;
         $wgDefaultUserOptions["echo-subscriptions-web-task-manager-assignee-added"] = true;

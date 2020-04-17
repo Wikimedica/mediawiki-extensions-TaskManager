@@ -27,6 +27,10 @@
 		"PageContentSave": "MediaWiki\\Extension\\TaskManager\\TaskManager::onPageContentSave",
 		"BeforeCreateEchoEvent": "MediaWiki\\Extension\\TaskManager\\TaskManager::onBeforeCreateEchoEvent"
 	},
+	"DefaultUserOptions": {
+		"echo-subscriptions-email-task-manager-assignee-added": true,
+		"echo-subscriptions-web-task-manager-assignee-added": true
+	},
 	"SpecialPages": {
 		"MyTasks" : "MediaWiki\\Extension\\TaskManager\\SpecialMyTasks"
 	},

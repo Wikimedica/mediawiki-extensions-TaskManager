@@ -46,6 +46,7 @@ class AssigneeAddedPresentationModel extends \EchoEventPresentationModel
         
         if($page->getRevision()->getId() == $event->getExtraParam('revision-id'))
         {
+            $this->_addToWatchlist();
             return true; // The page did not change, the notification can proceed.
         }
         
@@ -59,14 +60,21 @@ class AssigneeAddedPresentationModel extends \EchoEventPresentationModel
             return false; // The user name was not found in the page ... it must have been unassigned.
         }
         
-        
-        // Add the just assigned task ( and its talk page) to the assignee's watchlist.
-        $watchlist = \MediaWiki\MediaWikiServices::getInstance()->getWatchedItemStore();
-        $watchlist->addWatch($this->getUser(), $title);
-        // Normally talk pages are defined.
-        if($talk = $title->getTalkPageIfDefined()) { $watchlist->addWatch($this->getUser(), $talk); }
+        $this->_addToWatchlist();
         
         return true; // Let the event through.
+    }
+    
+    /**
+     * Adds the page that triggered the event to the user's watchlist.
+     * */
+    private function _addToWatchlist()
+    {
+        // Add the just assigned task ( and its talk page) to the assignee's watchlist.
+        $watchlist = \MediaWiki\MediaWikiServices::getInstance()->getWatchedItemStore();
+        $watchlist->addWatch($this->getUser(), $this->event->getTitle());
+        // Normally talk pages are defined.
+        if($talk = $this->event->getTitle()->getTalkPageIfDefined()) { $watchlist->addWatch($this->getUser(), $talk); }
     }
     
     /**
