@@ -47,7 +47,7 @@ class SpecialMyTasks extends \SpecialPage
 	    $querySource = $querySourceFactory->get();
 	    $result = $querySource->getQueryResult( $query );*/
 	    
-	    $this->getOutput()->addWikiTextAsInterface('= Mes tâches =');
+	    $this->getOutput()->setPageTitle('Mes tâches');
 	    
 	    $request = $this->getRequest()->getQueryValues();
 	    $user = isset($request['user']) ? $request['user']: $this->getUser()->getName();
