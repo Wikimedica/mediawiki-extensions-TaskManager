@@ -167,7 +167,7 @@ class TaskManager
             'group' => 'interactive',
             'presentation-model' => \MediaWiki\Extension\TaskManager\AssigneeAddedPresentationModel::class,
             'user-locators' => ['\MediaWiki\Extension\TaskManager\AssigneeAddedPresentationModel::locateNewAssignees'],
-            'immediate' => defined(ENVIRONMENT) && ENVIRONMENT == 'development' // Use the job queue if not in a development environment.
+            'immediate' => true //defined(ENVIRONMENT) && ENVIRONMENT == 'development' // Use the job queue if not in a development environment.
         ];
         
         $echoNotificationIcons['list']['path'] = 'TaskManager/modules/icons/list.svg';
