@@ -41,27 +41,7 @@ class AssigneeAddedPresentationModel extends \EchoEventPresentationModel
         
         if(!$title || !$title->exists()) { return false; } // Page does not exist for some reason.
         if($event->getAgent() === null) { return false; } // No idea why agent would be null, but let's account for that.
-        
-        $page = \WikiPage::factory($title);
-        
-        if($page->getRevision()->getId() == $event->getExtraParam('revision-id'))
-        {
-            $this->_addToWatchlist();
-            return true; // The page did not change, the notification can proceed.
-        }
-        
-        /* Check if the user is still part of the assignees ...
-         * sort of, to make this less complicated, it just checks if the user name is mentionned in the whole page...
-         */
-        $content = $page->getContent(\Revision::FOR_THIS_USER)->getNativeData();
-        
-        if(strpos($content, $this->getUser()->getName()) === false)
-        {
-            return false; // The user name was not found in the page ... it must have been unassigned.
-        }
-        
-        $this->_addToWatchlist();
-        
+
         return true; // Let the event through.
     }
     

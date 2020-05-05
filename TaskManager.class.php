@@ -29,21 +29,27 @@ class TaskManager
         if(self::$_ran) { return; } // Can only be called once.
         self::$_ran = true; // We don't want to send notifications twice.
         
-        $isTask = false;
-        foreach($wikiPage->getCategories() as $cat) // Check if the page is a task.
-        {
-            if($isTask = in_array(strtolower($cat->getDbKey()), ['tasks', 'tâches'])) { break; }
-        }
-        
-        if(!$isTask) { return; } // Ignoring, page is not a task.
-        
         $title = $wikiPage->getTitle();
+        
+        if($title->exists()) // If the page is not new.
+        {
+            $isTask = false;
+            foreach($wikiPage->getCategories() as $cat) // Check if the page is a task.
+            {
+                if($isTask = in_array(strtolower($cat->getDbKey()), ['tasks', 'tâches'])) { break; }
+            }
+            
+            if(!$isTask) { return; } // Ignoring, page is not a task.
+        }
+        /* New pages do not have categories yet. Check later on that it has the Task template. */
         
         $previousPageStructure = $title->exists() ? DTPageStructure::newFromTitle($title): null;
         $newPageStructure = new DTPageStructure();
         $newPageStructure->parsePageContents(\ContentHandler::getContentText($content));
-        $previousParams = self::_getTaskTemplate($previousPageStructure);
+        $previousParams = $previousPageStructure === null ? []: self::_getTaskTemplate($previousPageStructure);
         $newParams = self::_getTaskTemplate($newPageStructure);
+        
+        if($newParams === false) { return; } // The task template was not found, this page is not a task.
         
         $diff = self::_diff($previousParams, $newParams);
         
@@ -76,10 +82,7 @@ class TaskManager
             'type' => 'task-manager-assignee-added',
             'title' => $title,
             'extra' => [
-                'new-assignees' => $userIds,
-                'revision-id' => $wikiPage->getRevision()->getId() /* Used to confirm the page did not change between the time
-                a user is getting the notification and the time it was triggered. If the page changed, make sure it still exists
-                and the user is still part of the assignees. */
+                'new-assignees' => $userIds
             ],
             'agent' => $user
         ]);
@@ -88,11 +91,11 @@ class TaskManager
     /**
      * Extracts the task template from a page.
      * @param \DTPageStructure $page the page to extract the template from.
-     * @return array the template [parameter => value]
+     * @return array|bool the template [parameter => value] or false if it does not exist.
      * */
     private static function _getTaskTemplate($page)
     {
-        if(get_class($page) !== 'DTPageStructure') { return $page; }
+        if(get_class($page) !== 'DTPageStructure') { return false; }
         
         foreach($page->mComponents as $c) // Looking for the Task template.
         {
@@ -104,7 +107,7 @@ class TaskManager
             }
         }
         
-        return [];
+        return false; // No task template found.
     }
     
     /**
