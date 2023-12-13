@@ -242,7 +242,7 @@ class TaskManager
 	    $subject = $board; // Redirect to the board.
 	    
 	    // Check if the subject is a task.
-	    foreach((\Article::newFromTitle($subject->getOtherPage(), $context))->getCategories() as $category)
+	    foreach(\MediaWiki\MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle($subject->getOtherPage())->getCategories() as $category)
 	    {
 	        if($category->getDBKey() == 'Tâches')
 	        {
