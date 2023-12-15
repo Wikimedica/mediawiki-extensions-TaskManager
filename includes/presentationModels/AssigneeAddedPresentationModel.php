@@ -85,7 +85,7 @@ class AssigneeAddedPresentationModel extends \EchoEventPresentationModel
     public function getSecondaryLinks()
     {
         $page = \WikiPage::factory($this->event->getTitle());
-        $user = \User::newFromId($page->getRevision()->getUser(\Revision::FOR_THIS_USER));
+        $user = \User::newFromId($page->getRevisionRecord()->getUser());
         
         return [
             [   // The user that did the assignation.
