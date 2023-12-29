@@ -198,6 +198,7 @@ class TaskManager
             'title' => 'Mes tâches',//$skin->msg( 'taskManager-link-title' )->text(),
             'href' => \SpecialPage::getSafeTitleFor('MyTasks')->getLocalURL(['user' => $skin->getUser()->getName()]),
             'exists' => true,
+            'icon' => 'success'
         ];
         
         // Insert our link before the link to user preferences.
