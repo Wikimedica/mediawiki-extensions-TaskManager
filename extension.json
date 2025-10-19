@@ -24,7 +24,7 @@
 	"Hooks": {
 		"PersonalUrls": "MediaWiki\\Extension\\TaskManager\\TaskManager::onPersonalUrls",
 		"ArticleFromTitle": "MediaWiki\\Extension\\TaskManager\\TaskManager::onArticleFromTitle",
-		"PageContentSave": "MediaWiki\\Extension\\TaskManager\\TaskManager::onPageContentSave",
+		"ParserPreSaveTransformComplete": "MediaWiki\\Extension\\TaskManager\\TaskManager::onParserPreSaveTransformComplete",
 		"BeforeCreateEchoEvent": "MediaWiki\\Extension\\TaskManager\\TaskManager::onBeforeCreateEchoEvent"
 	},
 	"DefaultUserOptions": {

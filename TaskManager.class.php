@@ -24,16 +24,18 @@ class TaskManager
     /**
      * Triggers an event when a task page is modified.
      * */
-    public static function onPageContentSave( \WikiPage &$wikiPage, &$user, &$content, &$summary, $isMinor, $isWatch, $section, &$flags, &$status )
-    {
+     public static function onParserPreSaveTransformComplete( $parser, string &$text ) {
+
         if(self::$_ran) { return; } // Can only be called once.
         self::$_ran = true; // We don't want to send notifications twice.
         
-        $title = $wikiPage->getTitle();
+        $title = $parser->getTitle();
         
         if($title->exists()) // If the page is not new.
         {
             $isTask = false;
+            
+            $wikiPage = \MediaWiki\MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
             foreach($wikiPage->getCategories() as $cat) // Check if the page is a task.
             {
                 if($isTask = in_array(strtolower($cat->getDbKey()), ['tasks', 'tâches'])) { break; }
@@ -45,15 +47,29 @@ class TaskManager
         
         $previousPageStructure = $title->exists() ? DTPageStructure::newFromTitle($title): null;
         $newPageStructure = new DTPageStructure();
-        $newPageStructure->parsePageContents(\ContentHandler::getContentText($content));
+        $newPageStructure->parsePageContents($text);
         $previousParams = $previousPageStructure === null ? []: self::_getTaskTemplate($previousPageStructure);
         $newParams = self::_getTaskTemplate($newPageStructure);
         
         if($newParams === false) { return; } // The task template was not found, this page is not a task.
-        
+
         $diff = self::_diff($previousParams, $newParams);
+		
+        if(isset($diff['status'])) { // Status changed
+            // Update task_completion_date based on status transitions (enter/leave completed states 3 or 4)
+            $previousStatus = isset($previousParams['status']) ? (int)trim($previousParams['status']) : null;
+            $newStatus = isset($newParams['status']) ? (int)trim($newParams['status']) : null;
+            $wasCompleted = in_array($previousStatus, [3, 4], true); // Or rejected.
+            $isCompleted = in_array($newStatus, [3, 4], true); // Or rejected.
+            if ($newStatus !== null && $wasCompleted !== $isCompleted)
+            {
+                $fieldValue = $isCompleted ? date('Y-m-d') : null;
+                $newWikitext = self::_makeTaskPage($newPageStructure, ['task_completion_date' => $fieldValue]);
+                if($newWikitext !== false) { $text = $newWikitext; }
+            }
+        }
         
-        if(!isset($diff['assignees'])) { return; } // assignees did not change.
+		if(!isset($diff['assignees'])) { return; } // assignees did not change.
         
         $newAssignees = array_diff(
             explode(',', $diff['assignees']), 
@@ -69,7 +85,7 @@ class TaskManager
             if($u->isAnon() || $u->isLocked()) { continue; } // User does not exist or has been locked.
             
             // Do not send a notification if a user added himself.
-            if($u->getId() == $user->getId()) { continue; }
+            if($u->getId() == \RequestContext::getMain()->getUser()->getId()) { continue; }
             
             $userIds[] = $u->getId();
             $users[] = $u;
@@ -101,13 +117,48 @@ class TaskManager
         {
             if(!$c->mIsTemplate) { continue; } // Not a template, skip
             
-            if(in_array(strtolower($c->mTemplateName), ['task', 'tâche']))
+            if(in_array(strtolower($c->mTemplateName), ['task', 'tâche', 'réunion', 'tâche de rédaction', 'interaction']))
             {
                 return array_change_key_case($c->mFields, CASE_LOWER); // Found the Task template.
             }
         }
         
         return false; // No task template found.
+    }
+
+    /**
+     * Updates fields of the Task template in a page structure and returns new wikitext.
+     * Pass a value of null to remove a field from the template.
+     * @param \DTPageStructure $page the page structure to update.
+     * @param array $fieldUpdates [fieldName => value|null]
+     * @return string|false Updated wikitext, or false if no Task template found.
+     */
+    private static function _makeTaskPage($page, $fieldUpdates)
+    {
+        if(get_class($page) !== 'DTPageStructure') { return false; }
+        
+        foreach($page->mComponents as $component)
+        {
+            if(!$component->mIsTemplate) { continue; }
+            $templateName = strtolower($component->mTemplateName);
+            if(!in_array($templateName, ['task', 'tâche', 'réunion', 'tâche de rédaction', 'interaction'])) { continue; }
+            
+            foreach($fieldUpdates as $fieldName => $fieldValue)
+            {
+                if($fieldValue === null)
+                {
+                    if(isset($component->mFields[$fieldName])) { unset($component->mFields[$fieldName]); }
+                }
+                else
+                {
+                    $component->mFields[$fieldName] = $fieldValue;
+                }
+            }
+            
+            return $page->toWikitext();
+        }
+        
+        return false;
     }
     
     /**
