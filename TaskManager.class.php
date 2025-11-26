@@ -155,7 +155,18 @@ class TaskManager
                 }
             }
             
-            return $page->toWikitext();
+            $wikitext = $page->toWikitext();
+            
+            // Unescape HTML entities that were escaped during parsePageContents()
+            // to restore original wikitext characters like {| for tables
+            $wikitext = str_replace('&#123;|', '{|', $wikitext);
+            $wikitext = str_replace('|&#125;', '|}', $wikitext);
+            $wikitext = str_replace('&#123;&#123;&#123;', '{{{', $wikitext);
+            $wikitext = str_replace('&#125;&#125;&#125;', '}}}', $wikitext);
+            $wikitext = str_replace('&#123;&#123;', '{{', $wikitext);
+            $wikitext = str_replace('&#125;&#125;', '}}', $wikitext);
+            
+            return $wikitext;
         }
         
         return false;
