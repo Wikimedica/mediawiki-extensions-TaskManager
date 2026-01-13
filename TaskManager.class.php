@@ -100,7 +100,7 @@ class TaskManager
             'extra' => [
                 'new-assignees' => $userIds
             ],
-            'agent' => $user
+            'agent' => \RequestContext::getMain()->getUser()
         ]);
     }
     
