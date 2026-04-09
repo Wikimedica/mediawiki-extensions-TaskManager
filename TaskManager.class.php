@@ -239,45 +239,44 @@ class TaskManager
     }
     
     /**
-     * PersonalUrls hook handler.
+     * SkinTemplateNavigation::Universal hook handler.
      *
-     * @param array &$personalUrls
-     * @param Title &$title (unused)
-     * @param Skin $skin
+     * @param \SkinTemplate $sktemplate
+     * @param array &$links
      * @return bool true
      */
-    public static function onPersonalUrls(&$personalUrls, &$title, $skin)
+    public static function onSkinTemplateNavigationUniversal( \SkinTemplate $sktemplate, array &$links )
     {
+        $skin = $sktemplate;
+
         // Do not show for anonymous users.
-        if($skin->getUser()->isAnon()) { return true; }
-        
-        
-        $newPersonalUrls = [];
-        
+        if ( $skin->getUser()->isAnon() ) { return true; }
+
         $link = [
             'id' => 'pt-tasks',
-            'text' => 'Tâches',//$skin->msg( 'taskManager-link-label' )->text(),
-            'title' => 'Mes tâches',//$skin->msg( 'taskManager-link-title' )->text(),
+            'text' => 'Tâches',
+            'title' => 'Mes tâches',
             'href' => \SpecialPage::getSafeTitleFor('MyTasks')->getLocalURL(['user' => $skin->getUser()->getName()]),
             'exists' => true,
-            'icon' => 'success'
+            'icon' => 'listBullet'
         ];
-        
-        // Insert our link before the link to user preferences.
-        // If the link to preferences is missing, insert at the end.
-        foreach($personalUrls as $key => $value)
-        {
-            if($key === 'preferences') { $newPersonalUrls['tasks'] = $link; }
-            $newPersonalUrls[$key] = $value;
+
+        // Insert before preferences; fall back to appending at end.
+        $newUserMenu = [];
+        $inserted = false;
+        foreach ( $links['user-menu'] ?? [] as $key => $value ) {
+            if ( $key === 'preferences' ) {
+                $newUserMenu['tasks'] = $link;
+                $inserted = true;
+            }
+            $newUserMenu[$key] = $value;
         }
-        
-        if (!array_key_exists('tasks', $newPersonalUrls))
-        {
-            $newPersonalUrls['tasks'] = $link;
+        if ( !$inserted ) {
+            $newUserMenu['tasks'] = $link;
         }
-        
-        $personalUrls = $newPersonalUrls;
-        
+
+        $links['user-menu'] = $newUserMenu;
+
         return true;
     }
 	

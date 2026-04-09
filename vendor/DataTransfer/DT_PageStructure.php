@@ -20,8 +20,9 @@ class DTPageStructure {
         $pageStructure = new DTPageStructure();
         $pageStructure->mPageTitle = $pageTitle;
         
-        $wiki_page = WikiPage::factory( $pageTitle );
-        $page_contents = ContentHandler::getContentText( $wiki_page->getContent() );
+        $wiki_page = MediaWiki\MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $pageTitle );
+        $wikiContent = $wiki_page->getContent();
+        $page_contents = $wikiContent instanceof \TextContent ? $wikiContent->getText() : '';
         
         $pageStructure->parsePageContents( $page_contents );
         

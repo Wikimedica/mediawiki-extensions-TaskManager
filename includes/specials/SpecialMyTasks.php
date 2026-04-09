@@ -24,7 +24,7 @@ class SpecialMyTasks extends \SpecialPage
 	{
 		parent::__construct('MyTasks', 'edit');
         
-		$this->addHelpLink(\Title::newFromText('Tâches', NS_HELP)->getFullURL(), true);
+		$this->addHelpLink(\MediaWiki\Title\Title::newFromText('Tâches', NS_HELP)->getFullURL(), true);
 	}
 	
 	/**

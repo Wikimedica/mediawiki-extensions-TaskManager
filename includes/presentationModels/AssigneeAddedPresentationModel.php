@@ -84,7 +84,7 @@ class AssigneeAddedPresentationModel extends \EchoEventPresentationModel
      * */
     public function getSecondaryLinks()
     {
-        $page = \WikiPage::factory($this->event->getTitle());
+        $page = \MediaWiki\MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle($this->event->getTitle());
         $user = \User::newFromId($page->getRevisionRecord()->getUser());
         
         return [

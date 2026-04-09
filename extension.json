@@ -22,7 +22,7 @@
 		"DTPageComponent": "vendor/DataTransfer/DT_PageComponent.php"
 	},
 	"Hooks": {
-		"PersonalUrls": "MediaWiki\\Extension\\TaskManager\\TaskManager::onPersonalUrls",
+		"SkinTemplateNavigation::Universal": "MediaWiki\\Extension\\TaskManager\\TaskManager::onSkinTemplateNavigationUniversal",
 		"ArticleFromTitle": "MediaWiki\\Extension\\TaskManager\\TaskManager::onArticleFromTitle",
 		"ParserPreSaveTransformComplete": "MediaWiki\\Extension\\TaskManager\\TaskManager::onParserPreSaveTransformComplete",
 		"BeforeCreateEchoEvent": "MediaWiki\\Extension\\TaskManager\\TaskManager::onBeforeCreateEchoEvent"
