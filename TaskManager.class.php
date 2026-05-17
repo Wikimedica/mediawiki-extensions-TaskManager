@@ -195,110 +195,6 @@ class TaskManager
         return $diff;
     }
     
-    /** @var bool guards against recursive rewrites when the wrap template body itself contains a matching link. */
-    private static $_inLinkRewrite = false;
-
-    /**
-     * Rewrites internal links matching configured patterns into template calls,
-     * so they can render with richer presentation than a plain link.
-     *
-     * Fires inside Parser::internalParse() AFTER replaceVariables() has expanded
-     * templates but BEFORE replaceInternalLinks() resolves [[...]] — so links
-     * supplied by template bodies are visible here. Because templates have
-     * already been expanded at this point, the {{Template|...}} we emit must be
-     * expanded manually via $parser->recursivePreprocess().
-     *
-     * internalParse() is also the entry point for recursive tag parses (e.g.
-     * <ref> bodies), so the static recursion guard prevents reentry when our
-     * wrap template's body itself contains a matching link.
-     *
-     * @param \Parser $parser
-     * @param string &$text
-     * @param \StripState $stripState
-     * @return bool
-     * */
-    public static function onInternalParseBeforeLinks( $parser, &$text, $stripState )
-    {
-        if(self::$_inLinkRewrite) { return true; } // Recursive call from the wrap template's own body.
-
-        // Only rewrite when the parse is producing HTML for display.
-        if($parser->getOutputType() !== \Parser::OT_HTML) { return true; }
-        if($parser->getOptions()->getInterfaceMessage()) { return true; }
-        if($parser->getTitle() === null) { return true; }
-
-        $patterns = \MediaWiki\MediaWikiServices::getInstance()->getMainConfig()->get('TaskManagerLinkPatterns');
-        if(empty($patterns)) { return true; }
-
-        $permissionDependent = false; // Flipped when output depends on viewer permissions.
-
-        self::$_inLinkRewrite = true;
-        try {
-            $text = preg_replace_callback(
-                '/\[\[([^\[\]\|\n]+)(?:\|([^\[\]\n]*))?\]\]/u',
-                function($matches) use ($patterns, $parser, &$permissionDependent) {
-                    $pageName = trim($matches[1]);
-                    $displayText = isset($matches[2]) ? trim($matches[2]): null;
-
-                    // Skip Semantic MediaWiki annotations like [[Property::Value]].
-                    if(strpos($pageName, '::') !== false) { return $matches[0]; }
-
-                    // Link text differs from page name: respect the author's explicit choice.
-                    if($displayText !== null && $displayText !== '' && $displayText !== $pageName) { return $matches[0]; }
-
-                    $title = null; // Lazily resolved on first need.
-
-                    foreach($patterns as $entry)
-                    {
-                        if(empty($entry['pattern']) || empty($entry['template'])) { continue; }
-                        if(!@preg_match($entry['pattern'], $pageName)) { continue; }
-
-                        if($title === null)
-                        {
-                            $title = \MediaWiki\Title\Title::newFromText($pageName) ?: false;
-                            if($title) { $title = self::_resolveRedirect($title); }
-                        }
-                        if(!$title || !$title->canExist() || !$title->exists()) { continue; }
-
-                        // From here on, output varies by viewer (permission check below).
-                        $permissionDependent = true;
-
-                        // Do not leak content via the template if the viewer cannot read the target.
-                        if(!self::_userCanRead($title)) { continue; }
-
-                        if(!empty($entry['category']) && !self::_titleHasCategory($title, $entry['category'])) { continue; }
-
-                        $resolvedName = $title->getPrefixedText();
-                        $arg = isset($entry['argument']) && $entry['argument'] !== ''
-                            ? $entry['argument'].'='.$resolvedName
-                            : $resolvedName;
-
-                        // Templates have already been expanded at this stage; expand the wrap manually.
-                        return $parser->recursivePreprocess('{{'.$entry['template'].'|'.$arg.'}}');
-                    }
-
-                    return $matches[0];
-                },
-                $text
-            );
-        } finally {
-            self::$_inLinkRewrite = false;
-        }
-
-        // Split the parser cache by the viewer's effective group set so users with
-        // different read permissions get different cache slots. Only applied when at
-        // least one link actually triggered a permission check, to avoid fragmenting
-        // the cache on pages that don't use the feature.
-        if($permissionDependent)
-        {
-            $services = \MediaWiki\MediaWikiServices::getInstance();
-            $groups = $services->getUserGroupManager()->getUserEffectiveGroups(\RequestContext::getMain()->getUser());
-            sort($groups);
-            $parser->getOptions()->addExtraKey('tm-grp:'.implode(',', $groups));
-        }
-
-        return true;
-    }
-
     /**
      * Follows a redirect chain to its final target. Returns the original title
      * if it isn't a redirect, or if the chain breaks (missing/non-local target,
@@ -307,7 +203,7 @@ class TaskManager
      * @param \MediaWiki\Title\Title $title
      * @return \MediaWiki\Title\Title
      * */
-    private static function _resolveRedirect($title)
+    public static function resolveRedirect($title)
     {
         static $cache = [];
 
@@ -342,7 +238,7 @@ class TaskManager
      * @param string $categoryName the category to check for (no Category: prefix).
      * @return bool
      * */
-    private static function _titleHasCategory($title, $categoryName)
+    public static function titleHasCategory($title, $categoryName)
     {
         static $cache = [];
 
@@ -360,24 +256,38 @@ class TaskManager
     }
 
     /**
-     * Checks whether the current request user can read a given title. Memoized
-     * per-request. Note: results vary by viewer, so any page that exercises this
-     * check should not be served from a parser cache shared across users with
-     * differing permissions to the target.
+     * Checks whether a given user can read a title. Memoized per-request, keyed
+     * by user id + title so multiple users (e.g. successive API requests in a
+     * test) don't collide.
      *
      * @param \MediaWiki\Title\Title $title
+     * @param \User|null $user defaults to the main context user.
      * @return bool
      * */
-    private static function _userCanRead($title)
+    public static function userCanRead($title, $user = null)
     {
         static $cache = [];
 
-        $key = $title->getPrefixedDBkey();
+        if($user === null) { $user = \RequestContext::getMain()->getUser(); }
+
+        $key = $user->getId().':'.$user->getName()."\0".$title->getPrefixedDBkey();
         if(isset($cache[$key])) { return $cache[$key]; }
 
         $services = \MediaWiki\MediaWikiServices::getInstance();
-        $user = \RequestContext::getMain()->getUser();
         return $cache[$key] = $services->getPermissionManager()->userCan('read', $user, $title);
+    }
+
+    /**
+     * BeforePageDisplay hook handler. Loads the client-side link enrichment module
+     * on every page so plain task links can be swapped for rendered cards.
+     *
+     * @param \OutputPage $out
+     * @param \Skin $skin
+     * @return void
+     * */
+    public static function onBeforePageDisplay( \OutputPage $out, \Skin $skin )
+    {
+        $out->addModules('ext.taskmanager.enrich');
     }
 
     /**

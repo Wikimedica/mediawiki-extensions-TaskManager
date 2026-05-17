@@ -18,6 +18,7 @@
 		"MediaWiki\\Extension\\TaskManager\\TaskManager": "TaskManager.class.php",
 		"MediaWiki\\Extension\\TaskManager\\SpecialMyTasks": "includes/specials/SpecialMyTasks.php",
 		"MediaWiki\\Extension\\TaskManager\\AssigneeAddedPresentationModel": "includes/presentationModels/AssigneeAddedPresentationModel.php",
+		"MediaWiki\\Extension\\TaskManager\\ApiTaskManagerCards": "includes/api/ApiTaskManagerCards.php",
 		"DTPageStructure": "vendor/DataTransfer/DT_PageStructure.php",
 		"DTPageComponent": "vendor/DataTransfer/DT_PageComponent.php"
 	},
@@ -25,13 +26,24 @@
 		"SkinTemplateNavigation::Universal": "MediaWiki\\Extension\\TaskManager\\TaskManager::onSkinTemplateNavigationUniversal",
 		"ArticleFromTitle": "MediaWiki\\Extension\\TaskManager\\TaskManager::onArticleFromTitle",
 		"ParserPreSaveTransformComplete": "MediaWiki\\Extension\\TaskManager\\TaskManager::onParserPreSaveTransformComplete",
-		"InternalParseBeforeLinks": "MediaWiki\\Extension\\TaskManager\\TaskManager::onInternalParseBeforeLinks",
+		"BeforePageDisplay": "MediaWiki\\Extension\\TaskManager\\TaskManager::onBeforePageDisplay",
 		"BeforeCreateEchoEvent": "MediaWiki\\Extension\\TaskManager\\TaskManager::onBeforeCreateEchoEvent"
+	},
+	"APIModules": {
+		"taskmanager-cards": "MediaWiki\\Extension\\TaskManager\\ApiTaskManagerCards"
+	},
+	"ResourceModules": {
+		"ext.taskmanager.enrich": {
+			"localBasePath": "modules",
+			"remoteExtPath": "TaskManager/modules",
+			"scripts": [ "ext.taskmanager.enrich.js" ],
+			"dependencies": [ "mediawiki.api" ]
+		}
 	},
 	"config": {
 		"TaskManagerLinkPatterns": {
 			"value": [],
-			"description": "List of entries used to wrap matching internal links in a template call. Each entry: {\"pattern\": <PCRE regex matched against the full page title>, \"template\": <template name>, \"argument\": <optional named-arg key; if omitted the page name is passed anonymously>, \"category\": <optional category name; if set, the link is only wrapped when the target page is in this category>}. Links of the form [[Page|Text]] where Text differs from Page are left untouched."
+			"description": "List of entries used to render matching internal links as a richer card produced by a template call. Each entry: {\"pattern\": <PCRE regex matched against the full page title>, \"template\": <template name>, \"argument\": <optional named-arg key; if omitted the page name is passed anonymously>, \"category\": <optional category name; if set, the link is only enriched when the target page is in this category>}. Enrichment runs client-side via ext.taskmanager.enrich, which calls action=taskmanager-cards to fetch the rendered HTML for each matching link on every page load. Mobile clients can call the same API directly."
 		}
 	},
 	"DefaultUserOptions": {

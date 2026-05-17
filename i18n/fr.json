@@ -3,5 +3,8 @@
 	"notification-header-task-manager-assignee-added": "La tâche $1 vous a été assignée",
 	"echo-pref-tooltip-task-manager-assignee-added": "Vous alerte si une tâche vous a été assignée",
 	"mytasks": "Mes tâches",
-        "taskManager-extension-description": "Gestion des tâches"
+	"taskManager-extension-description": "Gestion des tâches",
+	"apihelp-taskmanager-cards-summary": "Renvoie le HTML rendu d'une fiche de tâche pour chacun des titres demandés qui correspondent à $wgTaskManagerLinkPatterns.",
+	"apihelp-taskmanager-cards-param-titles": "Liste des titres de pages à enrichir.",
+	"apihelp-taskmanager-cards-example-1": "Récupérer les fiches pour deux tâches."
 }
