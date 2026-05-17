@@ -25,7 +25,14 @@
 		"SkinTemplateNavigation::Universal": "MediaWiki\\Extension\\TaskManager\\TaskManager::onSkinTemplateNavigationUniversal",
 		"ArticleFromTitle": "MediaWiki\\Extension\\TaskManager\\TaskManager::onArticleFromTitle",
 		"ParserPreSaveTransformComplete": "MediaWiki\\Extension\\TaskManager\\TaskManager::onParserPreSaveTransformComplete",
+		"InternalParseBeforeLinks": "MediaWiki\\Extension\\TaskManager\\TaskManager::onInternalParseBeforeLinks",
 		"BeforeCreateEchoEvent": "MediaWiki\\Extension\\TaskManager\\TaskManager::onBeforeCreateEchoEvent"
+	},
+	"config": {
+		"TaskManagerLinkPatterns": {
+			"value": [],
+			"description": "List of entries used to wrap matching internal links in a template call. Each entry: {\"pattern\": <PCRE regex matched against the full page title>, \"template\": <template name>, \"argument\": <optional named-arg key; if omitted the page name is passed anonymously>, \"category\": <optional category name; if set, the link is only wrapped when the target page is in this category>}. Links of the form [[Page|Text]] where Text differs from Page are left untouched."
+		}
 	},
 	"DefaultUserOptions": {
 		"echo-subscriptions-email-task-manager-assignee-added": true,
