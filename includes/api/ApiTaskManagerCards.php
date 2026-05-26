@@ -30,6 +30,13 @@ class ApiTaskManagerCards extends ApiBase
 {
     public function execute()
     {
+        // Enrichment is a logged-in-only feature; reject anonymous callers
+        // before doing any work or leaking per-title read decisions.
+        if(!$this->getUser()->isRegistered())
+        {
+            $this->dieWithError('apierror-mustbeloggedin-generic', 'notloggedin');
+        }
+
         $names = $this->getParameter('titles');
         $pageParam = $this->getParameter('page');
         $patterns = $this->getConfig()->get('TaskManagerLinkPatterns');

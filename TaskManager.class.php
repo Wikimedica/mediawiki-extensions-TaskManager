@@ -279,7 +279,9 @@ class TaskManager
 
     /**
      * BeforePageDisplay hook handler. Loads the client-side link enrichment module
-     * on every page so plain task links can be swapped for rendered cards.
+     * so plain task links can be swapped for rendered cards. Skipped for anonymous
+     * users: enrichment is reserved for logged-in users, and the taskmanager-cards
+     * API it relies on rejects anonymous callers anyway.
      *
      * @param \OutputPage $out
      * @param \Skin $skin
@@ -287,6 +289,8 @@ class TaskManager
      * */
     public static function onBeforePageDisplay( \OutputPage $out, \Skin $skin )
     {
+        if($out->getUser()->isAnon()) { return; }
+
         $out->addModules('ext.taskmanager.enrich');
     }
 
