@@ -80,7 +80,17 @@ class ApiTaskManagerCards extends ApiBase
                 $arg = isset($entry['argument']) && $entry['argument'] !== ''
                     ? $entry['argument'].'='.$resolvedName
                     : $resolvedName;
-                $wikitext = '{{'.$entry['template'].'|'.$arg.'}}';
+
+                // Resolve the wrap template through any redirect and transclude the
+                // final target directly. parse() does not follow a redirect template
+                // here, so transcluding the redirect page verbatim would emit its raw
+                // "#REDIRECTION ..." text instead of the target's output. A missing
+                // template resolves to itself and still renders as a redlink.
+                $templateTitle = Title::newFromText($entry['template'], NS_TEMPLATE);
+                $templateName = $templateTitle
+                    ? TaskManager::resolveRedirect($templateTitle)->getPrefixedText()
+                    : $entry['template'];
+                $wikitext = '{{'.$templateName.'|'.$arg.'}}';
 
                 $opts = ParserOptions::newFromContext($this);
                 $parserOutput = $parser->parse($wikitext, $contextTitle, $opts);
